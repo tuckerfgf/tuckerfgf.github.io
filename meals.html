@@ -6,7 +6,7 @@
             Original price
             <input id="calc-num-y" type="number" />
             <input id="calc-num-z" type="number" />
-            <input id="calc-submit" type="submit" value="Calc" />
+            <input id="calc-submit" type="submit" value="Calculate" />
             <input id="calc-solution" type="number" readonly="readonly" />
             <input type="reset" value="Reset" />
         </p>
@@ -17,7 +17,10 @@
                     e.preventDefault();
                     const numY = document.getElementById("calc-num-y").value;
                     const numZ = document.getElementById("calc-num-z").value;
-                    const answer = ((numY * 1.25) * (1 + (numZ / 100));toFixed(2);
+                    const work1 = (numY * 1.25);
+                    const work2 = (numZ / 100);
+                    const work3 = (1 + work2);
+                    const answer = (work1 + work3);
                     document.getElementById("calc-solution").value = answer;
                 });
         </script>
