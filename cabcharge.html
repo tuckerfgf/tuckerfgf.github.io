@@ -1,0 +1,23 @@
+<html>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <form id="calc">
+        <p style="color: white">
+            Original price
+            <input id="calc-num-y" type="number" />
+            <input id="calc-submit" type="submit" value="Add 25%" />
+            <input id="calc-solution" type="number" readonly="readonly" />
+            <input type="reset" value="Reset" />
+        </p>
+        <script>
+            document
+                .getElementById("calc-submit")
+                .addEventListener("click", function (e) {
+                    e.preventDefault();
+                    const numY = document.getElementById("calc-num-y").value;
+                    const answer = ((numY * 1.1) * 1.25 + 7.1).toFixed(2);
+                    document.getElementById("calc-solution").value = answer;
+                });
+        </script>
+    </form>
+</html>
