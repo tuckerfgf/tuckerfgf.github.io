@@ -17,7 +17,7 @@
                     e.preventDefault();
                     const numY = document.getElementById("calc-num-y").value;
                     const numZ = document.getElementById("calc-num-z").value;
-                    const answer = ((numY * 1.25) * (numZ + 100 / 100)).toFixed(2);
+                    const answer = ((numY * 1.25) * ((numZ + 100) / 100)).toFixed(2);
                     document.getElementById("calc-solution").value = answer;
                 });
         </script>
