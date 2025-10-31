@@ -3,16 +3,16 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Pricing Table – Updated Ratios</title>
+        <title>Pricing Table – Light Mode</title>
         <style>
             :root {
-                --bg: #0f1115;
-                --card: #151922;
-                --muted: #8a93a6;
-                --text: #eef2ff;
-                --accent: #5b9cff;
-                --grid: #232838;
-                --radius: 14px;
+                --bg: #fafafa;
+                --card: #ffffff;
+                --muted: #666;
+                --text: #1a1a1a;
+                --accent: #0078d4;
+                --grid: #e5e7eb;
+                --radius: 10px;
             }
 
             html,
@@ -43,8 +43,9 @@
                 margin-bottom: 14px;
             }
             .heading h1 {
-                font-size: 20px;
+                font-size: 22px;
                 margin: 0;
+                color: var(--text);
             }
             .heading .sub {
                 color: var(--muted);
@@ -53,9 +54,7 @@
             .card {
                 background: var(--card);
                 border-radius: var(--radius);
-                box-shadow:
-                    0 0 0 1px rgba(255, 255, 255, 0.03),
-                    0 10px 30px rgba(0, 0, 0, 0.35);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
             }
 
             .toolbar {
@@ -64,6 +63,7 @@
                 align-items: center;
                 padding: 12px 16px;
                 border-bottom: 1px solid var(--grid);
+                background: #f9fafb;
             }
             .toolbar .hint {
                 color: var(--muted);
@@ -77,8 +77,9 @@
             thead th {
                 position: sticky;
                 top: 0;
-                background: linear-gradient(#151922, #141825);
+                background: #f3f4f6;
                 z-index: 2;
+                color: #374151;
             }
 
             th,
@@ -90,21 +91,20 @@
             }
             thead th {
                 font-weight: 600;
-                color: #c7cff7;
                 letter-spacing: 0.02em;
             }
 
             tbody tr:hover {
-                background: rgba(255, 255, 255, 0.02);
+                background: #f9fafb;
             }
 
             input.money {
                 width: 120px;
-                background: #0c0f16;
+                background: #fff;
                 border: 1px solid var(--grid);
                 color: var(--text);
                 padding: 10px 12px;
-                border-radius: 10px;
+                border-radius: 8px;
                 outline: none;
                 transition:
                     border 0.2s,
@@ -112,7 +112,7 @@
             }
             input.money:focus {
                 border-color: var(--accent);
-                box-shadow: 0 0 0 3px rgba(91, 156, 255, 0.15);
+                box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
             }
             input.money[readonly] {
                 opacity: 0.7;
@@ -130,28 +130,35 @@
                 align-items: center;
                 color: var(--muted);
                 padding: 12px 16px;
+                background: #f9fafb;
+                border-top: 1px solid var(--grid);
             }
             .pill {
-                background: #0c1018;
+                background: #f3f4f6;
                 border: 1px solid var(--grid);
                 border-radius: 999px;
-                padding: 8px 12px;
-                color: #c7cff7;
+                padding: 6px 10px;
+                color: #374151;
             }
             .btn {
                 appearance: none;
                 border: 1px solid var(--grid);
-                background: #0c1018;
+                background: #fff;
                 color: var(--text);
                 padding: 8px 12px;
-                border-radius: 10px;
+                border-radius: 8px;
                 cursor: pointer;
+                transition:
+                    background 0.2s,
+                    border 0.2s;
+            }
+            .btn:hover {
+                background: #f3f4f6;
             }
             .btn:focus-visible {
                 outline: 2px solid var(--accent);
             }
 
-            /* Hide ratio column visually but keep accessible for JS */
             td[data-role="ratio"],
             th[data-role="ratio"] {
                 display: none;
@@ -159,46 +166,30 @@
         </style>
     </head>
     <body>
-        <div class="wrap">
-            <div class="heading">
-                <h1>Pricing Table</h1>
-                <span class="sub"
-                    >Edit only <strong>New IC Price</strong>.
-                    <em>New Service Price</em> is auto-calculated using a hidden
-                    ratio.</span
-                >
+        <div class="card">
+            <div class="toolbar">
+                <div class="hint"></div>
+                <button class="btn" id="resetBtn">Reset</button>
             </div>
 
-            <div class="card">
-                <div class="toolbar">
-                    <div class="hint">
-                        Formula:
-                        <code>New Service Price = New IC Price × Ratio</code>
-                    </div>
-                    <button class="btn" id="resetBtn">Reset</button>
-                </div>
+            <table id="priceTable">
+                <thead>
+                    <tr>
+                        <th style="width: 22%">Service Categories</th>
+                        <th>Variant</th>
+                        <th>Service Price</th>
+                        <th>IC Price</th>
+                        <th>New IC Price</th>
+                        <th>New Service Price</th>
+                        <th data-role="ratio">Ratio</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
 
-                <table id="priceTable">
-                    <thead>
-                        <tr>
-                            <th style="width: 22%">Service Categories</th>
-                            <th>Variant</th>
-                            <th>Service Price</th>
-                            <th>IC Price</th>
-                            <th>New IC Price</th>
-                            <th>New Service Price</th>
-                            <th data-role="ratio">Ratio</th>
-                        </tr>
-                    </thead>
-                    <tbody></tbody>
-                </table>
-
-                <div class="footer">
-                    <span class="pill" id="rowCount"></span>
-                    <span class="hint"
-                        >All monetary values are shown in AUD.</span
-                    >
-                </div>
+            <div class="footer">
+                <span class="pill" id="rowCount"></span>
+                <span class="hint">All monetary values are shown in AUD.</span>
             </div>
         </div>
 
@@ -232,7 +223,6 @@
                     icPrice: 162.0,
                     ratio: 1.49228395,
                 },
-
                 {
                     category: "🏡 Everyday Living",
                     variant: "Standard",
@@ -282,14 +272,13 @@
                 data.forEach((row, idx) => {
                     const tr = document.createElement("tr");
                     tr.innerHTML = `
-          <td>${row.category}</td>
-          <td>${row.variant}</td>
-          <td class="num">${fmt(row.servicePrice)}</td>
-          <td class="num">${fmt(row.icPrice)}</td>
-          <td><input class="money" inputmode="decimal" data-index="${idx}" value="${row.newIcPrice ?? ""}" placeholder="Enter…"></td>
-          <td class="num" data-role="new-service" data-index="${idx}">${row.newServicePrice ? fmt(row.newServicePrice) : ""}</td>
-          <td class="num" data-role="ratio">${row.ratio.toFixed(8)}</td>
-        `;
+            <td>${row.category}</td>
+            <td>${row.variant}</td>
+            <td class="num">${fmt(row.servicePrice)}</td>
+            <td class="num">${fmt(row.icPrice)}</td>
+            <td><input class="money" inputmode="decimal" data-index="${idx}" value="${row.newIcPrice ?? ""}" placeholder="Enter…"></td>
+            <td class="num" data-role="new-service" data-index="${idx}">${row.newServicePrice ? fmt(row.newServicePrice) : ""}</td>
+            <td class="num" data-role="ratio">${row.ratio.toFixed(8)}</td>`;
                     tbody.appendChild(tr);
                 });
             }
