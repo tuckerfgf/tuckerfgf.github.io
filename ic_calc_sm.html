@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Pricing Table – Light Mode</title>
+        <style>
+            :root {
+                --bg: #fafafa;
+                --card: #ffffff;
+                --muted: #666;
+                --text: #1a1a1a;
+                --accent: #0078d4;
+                --grid: #e5e7eb;
+                --radius: 10px;
+            }
+
+            html,
+            body {
+                height: 100%;
+                background: var(--bg);
+                color: var(--text);
+                font:
+                    14px/1.5 system-ui,
+                    -apple-system,
+                    Segoe UI,
+                    Roboto,
+                    Helvetica,
+                    Arial,
+                    "Apple Color Emoji",
+                    "Segoe UI Emoji";
+            }
+            .wrap {
+                max-width: 1100px;
+                margin: 24px auto;
+                padding: 24px;
+            }
+
+            .heading {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                margin-bottom: 14px;
+            }
+            .heading h1 {
+                font-size: 22px;
+                margin: 0;
+                color: var(--text);
+            }
+            .heading .sub {
+                color: var(--muted);
+            }
+
+            .card {
+                background: var(--card);
+                border-radius: var(--radius);
+                box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            }
+
+            .toolbar {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 12px 16px;
+                border-bottom: 1px solid var(--grid);
+                background: #f9fafb;
+            }
+            .toolbar .hint {
+                color: var(--muted);
+            }
+
+            table {
+                width: 100%;
+                border-collapse: separate;
+                border-spacing: 0;
+            }
+            thead th {
+                position: sticky;
+                top: 0;
+                background: #f3f4f6;
+                z-index: 2;
+                color: #374151;
+            }
+
+            th,
+            td {
+                padding: 14px 16px;
+                border-bottom: 1px solid var(--grid);
+                text-align: left;
+                vertical-align: middle;
+            }
+            thead th {
+                font-weight: 600;
+                letter-spacing: 0.02em;
+            }
+
+            tbody tr:hover {
+                background: #f9fafb;
+            }
+
+            input.money {
+                width: 140px;
+                background: #fff;
+                border: 1px solid var(--grid);
+                color: var(--text);
+                padding: 10px 12px;
+                border-radius: 8px;
+                outline: none;
+                transition:
+                    border 0.2s,
+                    box-shadow 0.2s;
+            }
+            input.money:focus {
+                border-color: var(--accent);
+                box-shadow: 0 0 0 3px rgba(0, 120, 212, 0.15);
+            }
+
+            .num {
+                font-variant-numeric: tabular-nums;
+                text-align: right;
+            }
+
+            .footer {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                color: var(--muted);
+                padding: 12px 16px;
+                background: #f9fafb;
+                border-top: 1px solid var(--grid);
+            }
+            .pill {
+                background: #f3f4f6;
+                border: 1px solid var(--grid);
+                border-radius: 999px;
+                padding: 6px 10px;
+                color: #374151;
+            }
+            .btn {
+                appearance: none;
+                border: 1px solid var(--grid);
+                background: #fff;
+                color: var(--text);
+                padding: 8px 12px;
+                border-radius: 8px;
+                cursor: pointer;
+                transition:
+                    background 0.2s,
+                    border 0.2s;
+            }
+            .btn:hover {
+                background: #f3f4f6;
+            }
+            .btn:focus-visible {
+                outline: 2px solid var(--accent);
+            }
+
+            /* Hide ratio column visually but keep accessible for JS */
+            td[data-role="ratio"],
+            th[data-role="ratio"] {
+                display: none;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="wrap">
+            <div class="heading"></div>
+
+            <div class="card">
+                <div class="toolbar">
+                    <div class="hint"></div>
+                    <button class="btn" id="resetBtn">Reset</button>
+                </div>
+
+                <table id="priceTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 22%">Service Categories</th>
+                            <th>Variant</th>
+                            <th>Service Price</th>
+                            <th>IC Price</th>
+                            <th>New IC Price</th>
+                            <th>New Service Price</th>
+                            <th data-role="ratio">Ratio</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+
+                <div class="footer">
+                    <span class="pill" id="rowCount"></span>
+                    <span class="hint"
+                        >All monetary values are shown in AUD.</span
+                    >
+                </div>
+            </div>
+        </div>
+
+        <script>
+            const data = [
+                {
+                    category: "🧑🏻‍🦽 Independence",
+                    variant: "Standard",
+                    servicePrice: 95.0,
+                    icPrice: 65.0,
+                    ratio: 1.46153846,
+                },
+                {
+                    category: "🧑🏻‍🦽 Independence",
+                    variant: "Saturday",
+                    servicePrice: 123.0,
+                    icPrice: 97.5,
+                    ratio: 1.26153846,
+                },
+                {
+                    category: "🧑🏻‍🦽 Independence",
+                    variant: "Sunday",
+                    servicePrice: 164.0,
+                    icPrice: 130.0,
+                    ratio: 1.26153846,
+                },
+                {
+                    category: "🧑🏻‍🦽 Independence",
+                    variant: "Public Hol",
+                    servicePrice: 204.37,
+                    icPrice: 162.0,
+                    ratio: 1.26154321,
+                },
+
+                {
+                    category: "🏡 Everyday Living",
+                    variant: "Standard",
+                    servicePrice: 85.0,
+                    icPrice: 62.0,
+                    ratio: 1.37096774,
+                },
+                {
+                    category: "🏡 Everyday Living",
+                    variant: "Saturday",
+                    servicePrice: 108.31,
+                    icPrice: 92.5,
+                    ratio: 1.17091892,
+                },
+                {
+                    category: "🏡 Everyday Living",
+                    variant: "Sunday",
+                    servicePrice: 144.61,
+                    icPrice: 123.5,
+                    ratio: 1.17093117,
+                },
+                {
+                    category: "🏡 Everyday Living",
+                    variant: "Public Hol",
+                    servicePrice: 181.5,
+                    icPrice: 155.0,
+                    ratio: 1.17096774,
+                },
+            ];
+
+            const AUD = new Intl.NumberFormat("en-AU", {
+                style: "currency",
+                currency: "AUD",
+            });
+            const fmt = (n) => AUD.format(Number.isFinite(n) ? n : 0);
+            const toNumber = (v) =>
+                parseFloat(String(v).replace(/[^0-9.-]/g, "")) || 0;
+
+            function computeNewServicePrice(newIcPrice, ratio) {
+                return +(toNumber(newIcPrice) * ratio).toFixed(2);
+            }
+
+            const tbody = document.querySelector("#priceTable tbody");
+
+            function render() {
+                tbody.innerHTML = "";
+                data.forEach((row, idx) => {
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+          <td>${row.category}</td>
+          <td>${row.variant}</td>
+          <td class="num">${fmt(row.servicePrice)}</td>
+          <td class="num">${fmt(row.icPrice)}</td>
+          <td><input class="money" inputmode="decimal" data-index="${idx}" value="${row.newIcPrice ?? ""}" placeholder="Enter New IC Price ($)"></td>
+          <td class="num" data-role="new-service" data-index="${idx}">${row.newServicePrice ? fmt(row.newServicePrice) : fmt(0)}</td>
+          <td class="num" data-role="ratio">${row.ratio.toFixed(8)}</td>
+        `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            render();
+
+            function updateRowFromInput(inputEl) {
+                const idx = Number(inputEl.dataset.index);
+                const newIc = toNumber(inputEl.value);
+                data[idx].newIcPrice = newIc;
+                data[idx].newServicePrice = computeNewServicePrice(
+                    newIc,
+                    data[idx].ratio,
+                );
+
+                const cell = tbody.querySelector(
+                    `td[data-role="new-service"][data-index="${idx}"]`,
+                );
+                cell.textContent = fmt(data[idx].newServicePrice);
+            }
+
+            tbody.addEventListener("input", (ev) => {
+                const t = ev.target;
+                if (t.matches("input.money")) updateRowFromInput(t);
+            });
+
+            tbody.addEventListener(
+                "blur",
+                (ev) => {
+                    const t = ev.target;
+                    if (!t.matches("input.money")) return;
+                    const n = toNumber(t.value);
+                    t.value = t.value ? fmt(n) : "";
+                },
+                true,
+            );
+
+            tbody.addEventListener(
+                "focus",
+                (ev) => {
+                    const t = ev.target;
+                    if (!t.matches("input.money")) return;
+                    const n = toNumber(t.value);
+                    t.value = n ? String(n) : "";
+                    t.select();
+                },
+                true,
+            );
+
+            document
+                .getElementById("resetBtn")
+                .addEventListener("click", () => {
+                    data.forEach((r) => {
+                        r.newIcPrice = null;
+                        r.newServicePrice = 0;
+                    });
+                    render();
+                });
+        </script>
+    </body>
+</html>
