@@ -1,23 +1,50 @@
 <html>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+    }
+
+    #calc p {
+      color: gray;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    input[type="number"],
+    input[type="submit"],
+    input[type="reset"] {
+      font-size: 16px;
+      padding: 6px 8px;
+      margin-top: 4px;
+    }
+
+    input[type="submit"],
+    input[type="reset"] {
+      cursor: pointer;
+    }
+  </style>
+
   <form id="calc">
-    <p style="color: gray">
+    <p>
       Meal Provider Invoice:
-      <input id="calc-num-y" type="number" step="0.01" />
-      <br>
+      <input id="calc-num-y" type="number" step="0.01" /><br>
+
       All-Inclusive Service Price:
-      <input id="calc-partial" type="number" step="0.01" readonly="readonly" />
-      <br>
+      <input id="calc-partial" type="number" step="0.01" readonly /><br>
+
       Contribution %:
-      <input id="calc-num-z" type="number" step="0.01" />
-      <br>
+      <input id="calc-num-z" type="number" step="0.01" /><br>
+
       Member Pays:
-      <input id="calc-member" type="number" step="0.01" readonly="readonly" />
-      <br>
+      <input id="calc-member" type="number" step="0.01" readonly /><br>
+
       Funding Covers:
-      <input id="calc-solution" type="number" step="0.01" readonly="readonly" />
-      <br>
+      <input id="calc-solution" type="number" step="0.01" readonly /><br>
+
       <input id="calc-submit" type="submit" value="Calculate" />
       <input type="reset" value="Reset" />
     </p>
@@ -28,22 +55,24 @@
         .addEventListener("click", function (e) {
           e.preventDefault();
 
-          // Read inputs (default to 0 if empty)
-          const numY = parseFloat(document.getElementById("calc-num-y").value) || 0;
-          const numZ = parseFloat(document.getElementById("calc-num-z").value) || 0;
+          const numY =
+            parseFloat(document.getElementById("calc-num-y").value) || 0;
+          const numZ =
+            parseFloat(document.getElementById("calc-num-z").value) || 0;
 
           // Total Amount = Base + 25%
           const work1 = numY * 1.25;
           document.getElementById("calc-partial").value = work1.toFixed(2);
 
           // Member Pays = Contribution % of Total Amount
-          const work2 = numZ / 100;
-          const memberPays = work1 * work2;
-          document.getElementById("calc-member").value = memberPays.toFixed(2);
+          const memberPays = work1 * (numZ / 100);
+          document.getElementById("calc-member").value =
+            memberPays.toFixed(2);
 
           // Program Covers = Total Amount - Member Pays
           const programCovers = work1 - memberPays;
-          document.getElementById("calc-solution").value = programCovers.toFixed(2);
+          document.getElementById("calc-solution").value =
+            programCovers.toFixed(2);
         });
     </script>
   </form>
