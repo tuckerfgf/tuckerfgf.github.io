@@ -1,23 +1,57 @@
 <html>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <form id="calc">
-        <p style="color: gray">
-            Original price
-            <input id="calc-num-y" type="number" />
-            <input id="calc-submit" type="submit" value="Add 10%" />
-            <input id="calc-solution" type="number" readonly="readonly" />
-            <input type="reset" value="Reset" />
-        </p>
-        <script>
-            document
-                .getElementById("calc-submit")
-                .addEventListener("click", function (e) {
-                    e.preventDefault();
-                    const numY = document.getElementById("calc-num-y").value;
-                    const answer = (numY * 1.1).toFixed(2);
-                    document.getElementById("calc-solution").value = answer;
-                });
-        </script>
-    </form>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      font-size: 16px;
+    }
+
+    #calc p {
+      color: gray;
+      font-size: 16px;
+      line-height: 1.8;
+    }
+
+    input[type="number"],
+    input[type="submit"],
+    input[type="reset"] {
+      font-size: 16px;
+      padding: 6px 8px;
+      margin-top: 4px;
+    }
+
+    input[type="submit"],
+    input[type="reset"] {
+      cursor: pointer;
+    }
+  </style>
+
+  <form id="calc">
+    <p>
+      Original price:
+      <input id="calc-num-y" type="number" />
+
+      <input id="calc-submit" type="submit" value="Add 10%" />
+
+      <input id="calc-solution" type="number" readonly />
+
+      <input type="reset" value="Reset" />
+    </p>
+
+    <script>
+      document
+        .getElementById("calc-submit")
+        .addEventListener("click", function (e) {
+          e.preventDefault();
+
+          const numY = parseFloat(document.getElementById("calc-num-y").value) || 0;
+
+          const answer = (numY * 1.1).toFixed(2);
+
+          document.getElementById("calc-solution").value = answer;
+        });
+    </script>
+  </form>
 </html>
