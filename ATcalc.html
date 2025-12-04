@@ -21,6 +21,11 @@
       box-sizing: border-box;
       margin-top: 5px;
     }
+    button {
+      margin-top: 20px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -31,13 +36,21 @@
   <label for="field2">Total Price (Quote price plus 10%, capped to $500)</label>
   <input type="number" id="field2" readonly />
 
-  <label for="field3">Contribution (5% of total price)</label>
+  <!-- New percentage input field (Field P) -->
+  <label for="fieldP">Contribution Percentage (%)</label>
+  <input type="number" id="fieldP" step="0.01" />
+
+  <label for="field3">Contribution (percentage of total price)</label>
   <input type="number" id="field3" readonly />
+
+  <button id="resetBtn" type="button">Reset</button>
 
   <script>
     const field1 = document.getElementById('field1');
     const field2 = document.getElementById('field2');
+    const fieldP = document.getElementById('fieldP');
     const field3 = document.getElementById('field3');
+    const resetBtn = document.getElementById('resetBtn');
 
     function updateFields() {
       const value1 = parseFloat(field1.value);
@@ -54,15 +67,36 @@
         calculatedField2 = 500;
       }
 
-      // Field 3 = 5% of Field 2
-      const calculatedField3 = calculatedField2 * 0.05;
-
-      // Optional: round to 2 decimal places
       field2.value = calculatedField2.toFixed(2);
+
+      // Update contribution (Field 3) based on Field P
+      updateContribution();
+    }
+
+    function updateContribution() {
+      const value2 = parseFloat(field2.value);
+      const percentage = parseFloat(fieldP.value);
+
+      if (isNaN(value2) || isNaN(percentage)) {
+        field3.value = '';
+        return;
+      }
+
+      const calculatedField3 = value2 * (percentage / 100);
       field3.value = calculatedField3.toFixed(2);
     }
 
+    function resetFields() {
+      field1.value = '';
+      field2.value = '';
+      fieldP.value = '';
+      field3.value = '';
+      field1.focus();
+    }
+
     field1.addEventListener('input', updateFields);
+    fieldP.addEventListener('input', updateContribution);
+    resetBtn.addEventListener('click', resetFields);
   </script>
 </body>
 </html>
