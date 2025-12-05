@@ -46,57 +46,58 @@
   <button id="resetBtn" type="button">Reset</button>
 
   <script>
-    const field1 = document.getElementById('field1');
-    const field2 = document.getElementById('field2');
-    const fieldP = document.getElementById('fieldP');
-    const field3 = document.getElementById('field3');
-    const resetBtn = document.getElementById('resetBtn');
+  const field1 = document.getElementById('field1');
+  const field2 = document.getElementById('field2');
+  const fieldP = document.getElementById('fieldP');
+  const field3 = document.getElementById('field3');
+  const resetBtn = document.getElementById('resetBtn');
 
-    function updateFields() {
-      const value1 = parseFloat(field1.value);
+  function updateFields() {
+    const value1 = parseFloat(field1.value);
 
-      if (isNaN(value1)) {
-        field2.value = '';
-        field3.value = '';
-        return;
-      }
-
-      // Field 2 = Field 1 + 15%, capped at 1500
-      let calculatedField2 = value1 * 1.15;
-      if (calculatedField2 > 1500) {
-        calculatedField2 = 1500;
-      }
-
-      field2.value = calculatedField2.toFixed(2);
-
-      // Update contribution based on Field P
-      updateContribution();
-    }
-
-    function updateContribution() {
-      const value2 = parseFloat(field2.value);
-      const percentage = parseFloat(fieldP.value);
-
-      if (isNaN(value2) || isNaN(percentage)) {
-        field3.value = '';
-        return;
-      }
-
-      const calculatedField3 = value2 * (percentage / 100);
-      field3.value = calculatedField3.toFixed(2);
-    }
-
-    function resetFields() {
-      field1.value = '';
+    if (isNaN(value1)) {
       field2.value = '';
-      fieldP.value = '';
       field3.value = '';
-      field1.focus();
+      return;
     }
 
-    field1.addEventListener('input', updateFields);
-    fieldP.addEventListener('input', updateContribution);
-    resetBtn.addEventListener('click', resetFields);
-  </script>
+    // Field 2 = Field 1 + (15% of Field 1), capped at $1500 extra
+    let additional = value1 * 0.15;
+    if (additional > 1500) {
+      additional = 1500;
+    }
+
+    let calculatedField2 = value1 + additional;
+    field2.value = calculatedField2.toFixed(2);
+
+    // Update contribution (Field 3)
+    updateContribution();
+  }
+
+  function updateContribution() {
+    const value2 = parseFloat(field2.value);
+    const percentage = parseFloat(fieldP.value);
+
+    if (isNaN(value2) || isNaN(percentage)) {
+      field3.value = '';
+      return;
+    }
+
+    const calculatedField3 = value2 * (percentage / 100);
+    field3.value = calculatedField3.toFixed(2);
+  }
+
+  function resetFields() {
+    field1.value = '';
+    field2.value = '';
+    fieldP.value = '';
+    field3.value = '';
+    field1.focus();
+  }
+
+  field1.addEventListener('input', updateFields);
+  fieldP.addEventListener('input', updateContribution);
+  resetBtn.addEventListener('click', resetFields);
+</script>
 </body>
 </html>
