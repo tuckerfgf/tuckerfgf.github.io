@@ -52,7 +52,38 @@
     line-height: 1.15;
     margin: 0 0 0.5rem;
   }
-  .intro { color: var(--muted); margin: 0 0 2rem; max-width: 34rem; }
+  .intro { color: var(--muted); margin: 0 0 1rem; max-width: 34rem; }
+
+  .toggle {
+    font: inherit;
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--accent);
+    background: transparent;
+    border: 1px solid var(--accent);
+    border-radius: 6px;
+    padding: 0.5rem 0.9rem;
+    margin-bottom: 1.5rem;
+    cursor: pointer;
+  }
+  .toggle:hover { background: var(--accent-soft); }
+  .toggle:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+
+  .splits {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    display: grid;
+    gap: 1rem;
+  }
+  .splits h2 { font-size: 1.15rem; margin: 0; }
+  .splits .fields { display: grid; gap: 1rem; grid-template-columns: 3fr 2fr; }
+  .splits select { background: var(--panel); }
+  .splits dl { margin: 0; display: grid; gap: 0.75rem; }
+  .splits dt { font-size: 0.9rem; color: var(--muted); }
+  .splits dd { margin: 0; white-space: pre-line; overflow-wrap: anywhere; }
+  .splits a { color: var(--accent); font-weight: 700; }
 
   form {
     background: var(--panel);
@@ -148,7 +179,7 @@
   .message.error { border-color: var(--error); color: var(--error); }
 
   @media (max-width: 34rem) {
-    fieldset { grid-template-columns: 1fr; }
+    fieldset, .splits .fields { grid-template-columns: 1fr; }
     main { padding-top: 2rem; }
     td.total { font-size: 1.15rem; }
     th, td { padding: 0.75rem 0.3rem; font-size: 0.95rem; }
@@ -160,6 +191,23 @@
 <main>
   <h1>Rate calculator</h1>
   <p class="intro">Choose a service, the day rate, and how many hours. Each amount is the hourly figure multiplied by the hours you enter. Tick Split when a visit covers two services.</p>
+
+  <button type="button" class="toggle" id="splitsToggle" aria-expanded="false" aria-controls="splits">Show Split Details</button>
+
+  <section class="splits" id="splits" hidden>
+    <h2>Split details</h2>
+    <div class="fields">
+      <div class="field">
+        <label for="splitService">Services</label>
+        <select id="splitService" disabled><option>Loading…</option></select>
+      </div>
+      <div class="field">
+        <label for="splitDuration">Duration</label>
+        <select id="splitDuration" disabled></select>
+      </div>
+    </div>
+    <dl id="splitResult" aria-live="polite"></dl>
+  </section>
 
   <form id="calc" onsubmit="return false">
     <fieldset class="part" id="part1">
@@ -212,6 +260,7 @@
   const MANIFEST = "datasets.json";    // list of { name, file } entries
   const BONUS_FILE = "data/bonus.csv"; // bonus name, flat amount
   const BONUS_COLUMN = "take home";    // column the bonus is added to (not case-sensitive)
+  const SPLITS_FILE = "data/splits.csv"; // Services, Duration, then the columns to show
   const CURRENCY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
 
   // ---- Elements ---------------------------------------------------------
@@ -426,6 +475,90 @@
     wrap.appendChild(table);
     resultsEl.appendChild(wrap);
   }
+
+  // ---- Split details ----------------------------------------------------
+  const splitsToggle = document.getElementById("splitsToggle");
+  const splitsPanel = document.getElementById("splits");
+  const splitServiceEl = document.getElementById("splitService");
+  const splitDurationEl = document.getElementById("splitDuration");
+  const splitResultEl = document.getElementById("splitResult");
+  let splits = null; // { headers, rows }
+
+  // Turns any web addresses in the text into links
+  function withLinks(text) {
+    const frag = document.createDocumentFragment();
+    text.split(/(https?:\/\/\S+)/g).forEach(piece => {
+      if (/^https?:\/\//.test(piece)) {
+        const a = document.createElement("a");
+        a.href = piece;
+        a.target = "_blank";
+        a.rel = "noopener";
+        let host = piece;
+        try { host = new URL(piece).hostname.replace(/^www\./, ""); } catch {}
+        a.textContent = `this ${host} page`;
+        frag.appendChild(a);
+      } else if (piece) {
+        frag.appendChild(document.createTextNode(piece));
+      }
+    });
+    return frag;
+  }
+
+  function fillDurations() {
+    const previous = splitDurationEl.value;
+    splitDurationEl.innerHTML = "";
+    splits.rows
+      .filter(r => r[0] === splitServiceEl.value)
+      .forEach(r => splitDurationEl.add(new Option(r[1], r[1])));
+    if ([...splitDurationEl.options].some(o => o.value === previous)) splitDurationEl.value = previous;
+    splitDurationEl.disabled = splitDurationEl.options.length < 2;
+    showSplit();
+  }
+
+  function showSplit() {
+    const row = splits.rows.find(r => r[0] === splitServiceEl.value && r[1] === splitDurationEl.value);
+    splitResultEl.innerHTML = "";
+    if (!row) return;
+    splits.headers.slice(2).forEach((header, i) => {
+      const dt = document.createElement("dt");
+      dt.textContent = header;
+      const dd = document.createElement("dd");
+      dd.appendChild(withLinks(row[i + 2] ?? ""));
+      splitResultEl.append(dt, dd);
+    });
+  }
+
+  async function loadSplits() {
+    if (splits) return;
+    try {
+      const res = await fetch(SPLITS_FILE, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`${SPLITS_FILE} returned ${res.status}`);
+      const rows = parseCSV(await res.text());
+      if (rows.length < 2) throw new Error(`${SPLITS_FILE} has no data rows`);
+      splits = { headers: rows[0], rows: rows.slice(1) };
+      splitServiceEl.innerHTML = "";
+      [...new Set(splits.rows.map(r => r[0]))].forEach(name => splitServiceEl.add(new Option(name, name)));
+      splitServiceEl.disabled = false;
+      fillDurations();
+    } catch (err) {
+      splitServiceEl.innerHTML = "<option>Unavailable</option>";
+      splitResultEl.innerHTML = "";
+      const dd = document.createElement("dd");
+      dd.textContent = `Couldn't load split details (${err.message}).`;
+      dd.style.color = "var(--error)";
+      splitResultEl.appendChild(dd);
+    }
+  }
+
+  splitsToggle.addEventListener("click", () => {
+    const open = splitsPanel.hidden;
+    splitsPanel.hidden = !open;
+    splitsToggle.setAttribute("aria-expanded", String(open));
+    splitsToggle.textContent = open ? "Hide Split Details" : "Show Split Details";
+    if (open) loadSplits();
+  });
+  splitServiceEl.addEventListener("change", fillDurations);
+  splitDurationEl.addEventListener("change", showSplit);
 
   // ---- Start up ---------------------------------------------------------
   async function init() {
