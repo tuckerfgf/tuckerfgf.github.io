@@ -17,6 +17,9 @@
     --accent: #2F6B5A;
     --accent-soft: #DCEAE4;
     --error: #A33A2B;
+    --warn-bg: #FBF1D9;
+    --warn-line: #E2C27A;
+    --warn-ink: #6B4E0F;
     color-scheme: light;
   }
   @media (prefers-color-scheme: dark) {
@@ -29,6 +32,9 @@
       --accent: #7CC4AC;
       --accent-soft: #23362F;
       --error: #F08A78;
+      --warn-bg: #2E2816;
+      --warn-line: #6E5A27;
+      --warn-ink: #F0D79A;
       color-scheme: dark;
     }
   }
@@ -46,6 +52,29 @@
     max-width: 44rem;
     margin: 0 auto;
     padding: 3rem 1.25rem 4rem;
+  }
+  .page-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem 1.5rem;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+  }
+  .page-head h1 { margin: 0.25rem 0 0; }
+  .testing {
+    max-width: 16rem;
+    margin: 0;
+    padding: 0.6rem 0.8rem;
+    font-size: 0.85rem;
+    line-height: 1.4;
+    color: var(--warn-ink);
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-line);
+    border-radius: 6px;
+  }
+  @media (max-width: 34rem) {
+    .testing { max-width: none; width: 100%; }
   }
   h1 {
     font-size: 2rem;
@@ -189,7 +218,10 @@
 </head>
 <body>
 <main>
-  <h1>Rate calculator</h1>
+  <div class="page-head">
+    <h1>Rate calculator</h1>
+    <p class="testing" role="note">This tool is still in testing. Double-check any outputs and report any issues you find.</p>
+  </div>
   <p class="intro">Choose a service, the day rate, and how many hours. Each amount is the hourly figure multiplied by the hours you enter. Tick Split when a visit covers two services.</p>
 
   <button type="button" class="toggle" id="splitsToggle" aria-expanded="false" aria-controls="splits">Show Split Details</button>
@@ -260,7 +292,7 @@
   const MANIFEST = "datasets.json";    // list of { name, file } entries
   const BONUS_FILE = "data/bonus.csv"; // bonus name, flat amount
   const BONUS_COLUMN = "take home";    // column the bonus is added to (not case-sensitive)
-  const SPLITS_FILE = "data/Splits.csv"; // Services, Duration, then the columns to show
+  const SPLITS_FILE = "data/splits.csv"; // Services, Duration, then the columns to show
   const CURRENCY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
 
   // ---- Elements ---------------------------------------------------------
