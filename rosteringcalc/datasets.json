@@ -1,4 +1,6 @@
 [
   { "name": "Everyday Living", "file": "data/everyday-living.csv" },
-  { "name": "Independence", "file": "data/Independence.csv" }
+  { "name": "Independence", "file": "data/Independence.csv" },
+  { "name": "NDIS", "file": "data/NDIS.csv" },
+  { "name": "Private", "file": "data/Private.csv" },
 ]
