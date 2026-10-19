@@ -1,3 +1,4 @@
 [
   { "name": "Everyday Living", "file": "data/everyday-living.csv" }
+  { "name": "Independence", "file": "data/Independence.csv" }
 ]
