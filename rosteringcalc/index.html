@@ -99,6 +99,7 @@
     font-weight: 700;
     color: var(--accent);
   }
+  .note { display: block; font-size: 0.85rem; font-weight: 400; color: var(--muted); }
   .message {
     padding: 1rem;
     border-radius: 6px;
@@ -132,6 +133,10 @@
       <label for="hours">Hours</label>
       <input id="hours" type="number" inputmode="decimal" min="0" step="0.25" value="1">
     </div>
+    <div class="field wide">
+      <label for="bonus">Bonus</label>
+      <select id="bonus" disabled><option value="">None</option></select>
+    </div>
   </form>
 
   <section class="results" id="results" aria-live="polite"></section>
@@ -140,12 +145,15 @@
 <script>
   // ---- Settings ---------------------------------------------------------
   const MANIFEST = "datasets.json";   // list of { name, file } entries
+  const BONUS_FILE = "data/bonus.csv"; // bonus name, flat amount
+  const BONUS_COLUMN = "take home";    // column the bonus is added to (not case-sensitive)
   const CURRENCY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
 
   // ---- Elements ---------------------------------------------------------
   const datasetEl = document.getElementById("dataset");
   const rateEl = document.getElementById("rate");
   const hoursEl = document.getElementById("hours");
+  const bonusEl = document.getElementById("bonus");
   const resultsEl = document.getElementById("results");
 
   let current = null; // { headers: [...], rows: [[...], ...] }
@@ -207,6 +215,14 @@
     s1.textContent = datasetEl.options[datasetEl.selectedIndex].text;
     s2.textContent = row[0];
     s3.textContent = hours === 1 ? "1 hour" : `${hours} hours`;
+    const bonusAmount = bonusEl.value === "" ? 0 : Number(bonusEl.value);
+    const bonusName = bonusEl.options[bonusEl.selectedIndex]?.text;
+    if (bonusAmount) {
+      summary.append(", plus ");
+      const s4 = document.createElement("strong");
+      s4.textContent = `${bonusName} bonus`;
+      summary.appendChild(s4);
+    }
     resultsEl.appendChild(summary);
 
     const table = document.createElement("table");
@@ -228,7 +244,15 @@
         total.textContent = "–";
       } else {
         rate.textContent = CURRENCY.format(perHour);
-        total.textContent = CURRENCY.format(perHour * hours);
+        const isBonusColumn = header.trim().toLowerCase() === BONUS_COLUMN;
+        const bonus = isBonusColumn ? bonusAmount : 0;
+        total.textContent = CURRENCY.format(perHour * hours + bonus);
+        if (bonus) {
+          const note = document.createElement("span");
+          note.className = "note";
+          note.textContent = `includes ${CURRENCY.format(bonus)} bonus`;
+          total.appendChild(note);
+        }
       }
       tr.append(name, rate, total);
       tbody.appendChild(tr);
@@ -261,7 +285,23 @@
     }
   }
 
+  async function loadBonuses() {
+    try {
+      const res = await fetch(BONUS_FILE, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`${BONUS_FILE} returned ${res.status}`);
+      parseCSV(await res.text()).slice(1).forEach(([name, amount]) => {
+        const n = toNumber(amount);
+        if (name && n !== null) bonusEl.add(new Option(name, n));
+      });
+      bonusEl.disabled = false;
+    } catch (err) {
+      bonusEl.options[0].text = "None (bonuses unavailable)";
+      console.warn(err);
+    }
+  }
+
   async function init() {
+    loadBonuses();
     try {
       const res = await fetch(MANIFEST, { cache: "no-cache" });
       if (!res.ok) throw new Error(`${MANIFEST} returned ${res.status}`);
@@ -279,6 +319,7 @@
   datasetEl.addEventListener("change", () => loadDataset(datasetEl.value));
   rateEl.addEventListener("change", render);
   hoursEl.addEventListener("input", render);
+  bonusEl.addEventListener("change", render);
   init();
 </script>
 </body>
