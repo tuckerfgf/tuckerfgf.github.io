@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rate calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #EEF3F1;
+    --panel: #FFFFFF;
+    --ink: #1D2B2F;
+    --muted: #5B6B6E;
+    --line: #CFDAD6;
+    --accent: #2F6B5A;
+    --accent-soft: #DCEAE4;
+    --error: #A33A2B;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141C1E;
+      --panel: #1C2629;
+      --ink: #E6EEEC;
+      --muted: #9FB0B0;
+      --line: #33434A;
+      --accent: #7CC4AC;
+      --accent-soft: #23362F;
+      --error: #F08A78;
+      color-scheme: dark;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+    font-size: 1.0625rem;
+    line-height: 1.5;
+  }
+  main {
+    max-width: 44rem;
+    margin: 0 auto;
+    padding: 3rem 1.25rem 4rem;
+  }
+  h1 {
+    font-size: 2rem;
+    line-height: 1.15;
+    margin: 0 0 0.5rem;
+  }
+  .intro { color: var(--muted); margin: 0 0 2rem; max-width: 34rem; }
+
+  form {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: grid;
+    gap: 1.25rem;
+  }
+  fieldset {
+    border: 0;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 1.25rem;
+    grid-template-columns: 1fr 1fr;
+    min-width: 0;
+  }
+  legend {
+    display: none;
+    font-weight: 700;
+    color: var(--accent);
+    padding: 0;
+    margin-bottom: 0.75rem;
+  }
+  form.is-split legend { display: block; }
+  form.is-split fieldset.part {
+    border-left: 3px solid var(--accent-soft);
+    padding-left: 1rem;
+  }
+  .field { display: grid; gap: 0.35rem; }
+  .field.wide { grid-column: 1 / -1; }
+  label { font-weight: 700; font-size: 0.95rem; }
+  select, input[type="number"] {
+    font: inherit;
+    color: var(--ink);
+    background: var(--bg);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 0.6rem 0.75rem;
+    width: 100%;
+  }
+  .check {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    cursor: pointer;
+    width: fit-content;
+  }
+  .check input {
+    width: 1.2rem;
+    height: 1.2rem;
+    margin: 0;
+    accent-color: var(--accent);
+  }
+  select:focus-visible, input:focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 1px;
+  }
+
+  .results { margin-top: 2rem; }
+  .summary { margin: 0 0 1rem; color: var(--muted); }
+  .summary strong { color: var(--ink); }
+  .summary span { display: block; }
+  .table-wrap { overflow-x: auto; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-variant-numeric: tabular-nums;
+  }
+  th, td {
+    text-align: left;
+    padding: 0.85rem 0.5rem;
+    border-bottom: 1px solid var(--line);
+  }
+  th { font-size: 0.9rem; color: var(--muted); font-weight: 400; }
+  td.num, th.num { text-align: right; white-space: nowrap; }
+  td.total {
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  th.num { white-space: normal; }
+  .note { display: block; font-size: 0.85rem; font-weight: 400; color: var(--muted); white-space: normal; }
+  .message {
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+  }
+  .message.error { border-color: var(--error); color: var(--error); }
+
+  @media (max-width: 34rem) {
+    fieldset { grid-template-columns: 1fr; }
+    main { padding-top: 2rem; }
+    td.total { font-size: 1.15rem; }
+    th, td { padding: 0.75rem 0.3rem; font-size: 0.95rem; }
+    th { font-size: 0.8rem; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>Rate calculator</h1>
+  <p class="intro">Choose a service, the day rate, and how many hours. Each amount is the hourly figure multiplied by the hours you enter. Tick Split when a visit covers two services.</p>
+
+  <form id="calc" onsubmit="return false">
+    <fieldset class="part" id="part1">
+      <legend>First part</legend>
+      <div class="field wide">
+        <label for="dataset1">Service</label>
+        <select id="dataset1" disabled><option>Loading…</option></select>
+      </div>
+      <div class="field">
+        <label for="rate1">Rate</label>
+        <select id="rate1" disabled></select>
+      </div>
+      <div class="field">
+        <label for="hours1">Hours</label>
+        <input id="hours1" type="number" inputmode="decimal" min="0" step="0.25" value="1">
+      </div>
+    </fieldset>
+
+    <label class="check" for="split">
+      <input id="split" type="checkbox"> Split
+    </label>
+
+    <fieldset class="part" id="part2" hidden>
+      <legend>Second part</legend>
+      <div class="field wide">
+        <label for="dataset2">Service</label>
+        <select id="dataset2" disabled><option>Loading…</option></select>
+      </div>
+      <div class="field">
+        <label for="rate2">Rate</label>
+        <select id="rate2" disabled></select>
+      </div>
+      <div class="field">
+        <label for="hours2">Hours</label>
+        <input id="hours2" type="number" inputmode="decimal" min="0" step="0.25" value="1">
+      </div>
+    </fieldset>
+
+    <div class="field">
+      <label for="bonus">Bonus</label>
+      <select id="bonus" disabled><option value="">None</option></select>
+    </div>
+  </form>
+
+  <section class="results" id="results" aria-live="polite"></section>
+</main>
+
+<script>
+  // ---- Settings ---------------------------------------------------------
+  const MANIFEST = "datasets.json";    // list of { name, file } entries
+  const BONUS_FILE = "data/bonus.csv"; // bonus name, flat amount
+  const BONUS_COLUMN = "take home";    // column the bonus is added to (not case-sensitive)
+  const CURRENCY = new Intl.NumberFormat("en-AU", { style: "currency", currency: "AUD" });
+
+  // ---- Elements ---------------------------------------------------------
+  const formEl = document.getElementById("calc");
+  const splitEl = document.getElementById("split");
+  const bonusEl = document.getElementById("bonus");
+  const resultsEl = document.getElementById("results");
+
+  const parts = [1, 2].map(n => ({
+    fieldset: document.getElementById(`part${n}`),
+    dataset: document.getElementById(`dataset${n}`),
+    rate: document.getElementById(`rate${n}`),
+    hours: document.getElementById(`hours${n}`),
+    data: null,
+    error: null,
+  }));
+
+  const cache = {};
+
+  // ---- CSV parsing (handles quotes, CRLF, stray spaces) -----------------
+  function parseCSV(text) {
+    const rows = [];
+    let row = [], cell = "", inQuotes = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (c === '"') inQuotes = false;
+        else cell += c;
+      } else if (c === '"') inQuotes = true;
+      else if (c === ",") { row.push(cell.trim()); cell = ""; }
+      else if (c === "\n" || c === "\r") {
+        if (c === "\r" && text[i + 1] === "\n") i++;
+        row.push(cell.trim()); rows.push(row); row = []; cell = "";
+      } else cell += c;
+    }
+    if (cell !== "" || row.length) { row.push(cell.trim()); rows.push(row); }
+    return rows.filter(r => r.some(v => v !== ""));
+  }
+
+  // "$1,050.00 " -> 1050
+  function toNumber(value) {
+    const cleaned = String(value).replace(/[$,\s]/g, "");
+    if (cleaned === "") return null;
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  const keyOf = header => header.trim().toLowerCase();
+  const hoursText = h => (h === 1 ? "1 hour" : `${h} hours`);
+
+  // ---- Data loading -----------------------------------------------------
+  async function fetchCSV(file) {
+    if (!cache[file]) {
+      const res = await fetch(file, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`${file} returned ${res.status}`);
+      const rows = parseCSV(await res.text());
+      if (rows.length < 2) throw new Error(`${file} has no data rows`);
+      cache[file] = { headers: rows[0], rows: rows.slice(1) };
+    }
+    return cache[file];
+  }
+
+  async function loadPart(part) {
+    part.rate.disabled = true;
+    try {
+      part.data = await fetchCSV(part.dataset.value);
+      part.error = null;
+      const previous = part.rate.options[part.rate.selectedIndex]?.text;
+      part.rate.innerHTML = "";
+      part.data.rows.forEach((r, i) => part.rate.add(new Option(r[0], i)));
+      const match = [...part.rate.options].find(o => o.text === previous);
+      if (match) part.rate.value = match.value;
+      part.rate.disabled = false;
+    } catch (err) {
+      part.data = null;
+      part.error = err.message;
+    }
+    render();
+  }
+
+  async function loadBonuses() {
+    try {
+      const res = await fetch(BONUS_FILE, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`${BONUS_FILE} returned ${res.status}`);
+      parseCSV(await res.text()).slice(1).forEach(([name, amount]) => {
+        const n = toNumber(amount);
+        if (name && n !== null) bonusEl.add(new Option(name, n));
+      });
+      bonusEl.disabled = false;
+    } catch (err) {
+      bonusEl.options[0].text = "None (bonuses unavailable)";
+      console.warn(err);
+    }
+  }
+
+  // ---- Calculation ------------------------------------------------------
+  // Returns { label, hours, values: Map(key -> { header, perHour, amount }) } or an error string
+  function calculatePart(part) {
+    if (part.error) return `Couldn't load ${part.dataset.options[part.dataset.selectedIndex]?.text} rates (${part.error}). Check the file path in ${MANIFEST}.`;
+    if (!part.data) return null;
+    const row = part.data.rows[part.rate.value];
+    const hours = parseFloat(part.hours.value);
+    if (!row) return null;
+    if (!Number.isFinite(hours) || hours < 0) return "Enter the number of hours as 0 or more, for example 2.5.";
+    const values = new Map();
+    part.data.headers.slice(1).forEach((header, i) => {
+      const perHour = toNumber(row[i + 1] ?? "");
+      values.set(keyOf(header), { header: header.trim(), perHour, amount: perHour === null ? null : perHour * hours });
+    });
+    return {
+      service: part.dataset.options[part.dataset.selectedIndex].text,
+      rate: row[0],
+      hours,
+      values,
+    };
+  }
+
+  // ---- Rendering --------------------------------------------------------
+  function showMessage(text, isError) {
+    resultsEl.innerHTML = "";
+    const p = document.createElement("p");
+    p.className = "message" + (isError ? " error" : "");
+    p.textContent = text;
+    resultsEl.appendChild(p);
+  }
+
+  function cell(tag, text, className) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    el.textContent = text;
+    return el;
+  }
+
+  function render() {
+    const isSplit = splitEl.checked;
+    const active = isSplit ? parts : parts.slice(0, 1);
+    const results = active.map(calculatePart);
+
+    const problem = results.find(r => typeof r === "string");
+    if (problem) return showMessage(problem, true);
+    if (results.some(r => !r)) return;
+
+    const bonusAmount = bonusEl.value === "" ? 0 : Number(bonusEl.value);
+    const bonusName = bonusEl.options[bonusEl.selectedIndex]?.text;
+
+    // Summary line(s)
+    resultsEl.innerHTML = "";
+    const summary = document.createElement("p");
+    summary.className = "summary";
+    results.forEach(r => {
+      const line = document.createElement("span");
+      line.append(cell("strong", r.service), " at ", cell("strong", r.rate), " for ", cell("strong", hoursText(r.hours)));
+      summary.appendChild(line);
+    });
+    if (bonusAmount) {
+      const line = document.createElement("span");
+      line.append("Plus ", cell("strong", `${bonusName} bonus`));
+      summary.appendChild(line);
+    }
+    resultsEl.appendChild(summary);
+
+    // Every item column across the active parts, in first-seen order
+    const keys = [];
+    results.forEach(r => r.values.forEach((_, k) => { if (!keys.includes(k)) keys.push(k); }));
+
+    const table = document.createElement("table");
+    const headRow = document.createElement("tr");
+    headRow.appendChild(cell("th", "Item"));
+    if (isSplit) {
+      headRow.appendChild(cell("th", "First part", "num"));
+      headRow.appendChild(cell("th", "Second part", "num"));
+      headRow.appendChild(cell("th", "Visit total", "num"));
+    } else {
+      headRow.appendChild(cell("th", "Per hour", "num"));
+      headRow.appendChild(cell("th", "Total", "num"));
+    }
+    headRow.querySelectorAll("th").forEach(th => th.scope = "col");
+    const thead = document.createElement("thead");
+    thead.appendChild(headRow);
+    const tbody = document.createElement("tbody");
+
+    keys.forEach(key => {
+      const entries = results.map(r => r.values.get(key));
+      const header = entries.find(Boolean).header;
+      const tr = document.createElement("tr");
+      tr.appendChild(cell("td", header));
+
+      if (isSplit) {
+        entries.forEach(e => tr.appendChild(cell("td", e && e.amount !== null ? CURRENCY.format(e.amount) : "–", "num")));
+      } else {
+        const e = entries[0];
+        tr.appendChild(cell("td", e.perHour === null ? "–" : CURRENCY.format(e.perHour), "num"));
+      }
+
+      const amounts = entries.filter(e => e && e.amount !== null).map(e => e.amount);
+      const total = cell("td", "", "num total");
+      if (amounts.length === 0) {
+        total.textContent = "–";
+      } else {
+        const bonus = key === BONUS_COLUMN ? bonusAmount : 0;
+        total.textContent = CURRENCY.format(amounts.reduce((a, b) => a + b, 0) + bonus);
+        if (bonus) total.appendChild(cell("span", `includes ${CURRENCY.format(bonus)} bonus`, "note"));
+      }
+      tr.appendChild(total);
+      tbody.appendChild(tr);
+    });
+
+    table.append(thead, tbody);
+    const wrap = document.createElement("div");
+    wrap.className = "table-wrap";
+    wrap.appendChild(table);
+    resultsEl.appendChild(wrap);
+  }
+
+  // ---- Start up ---------------------------------------------------------
+  async function init() {
+    loadBonuses();
+    try {
+      const res = await fetch(MANIFEST, { cache: "no-cache" });
+      if (!res.ok) throw new Error(`${MANIFEST} returned ${res.status}`);
+      const datasets = await res.json();
+      parts.forEach((part, n) => {
+        part.dataset.innerHTML = "";
+        datasets.forEach(d => part.dataset.add(new Option(d.name, d.file)));
+        // Second part starts on the next service in the list, if there is one
+        if (n === 1 && datasets.length > 1) part.dataset.selectedIndex = 1;
+        part.dataset.disabled = false;
+      });
+      await Promise.all(parts.map(loadPart));
+    } catch (err) {
+      parts.forEach(p => p.dataset.innerHTML = "<option>Unavailable</option>");
+      showMessage(`Couldn't load the list of services (${err.message}). If you opened this file directly from your computer, run it from GitHub Pages or a local web server instead.`, true);
+    }
+  }
+
+  parts.forEach(part => {
+    part.dataset.addEventListener("change", () => loadPart(part));
+    part.rate.addEventListener("change", render);
+    part.hours.addEventListener("input", render);
+  });
+  splitEl.addEventListener("change", () => {
+    parts[1].fieldset.hidden = !splitEl.checked;
+    formEl.classList.toggle("is-split", splitEl.checked);
+    render();
+  });
+  bonusEl.addEventListener("change", render);
+  init();
+</script>
+</body>
+</html>
