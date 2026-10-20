@@ -3,6 +3,6 @@
   { "name": "Driving", "file": "data/Driving.csv" },
   { "name": "Everyday Living", "file": "data/everyday-living.csv" },
   { "name": "Independence", "file": "data/Independence.csv" },
-  { "name": "Private", "file": "data/private.csv", "split": false },
-  { "name": "NDIS", "file": "data/ndis.csv", "split": false }
+  { "name": "Private", "file": "data/Private.csv", "split": false },
+  { "name": "NDIS", "file": "data/NDIS.csv", "split": false }
 ]
