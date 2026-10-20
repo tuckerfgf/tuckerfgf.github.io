@@ -167,6 +167,9 @@
     cursor: pointer;
     width: fit-content;
   }
+  .check.locked { opacity: 0.55; cursor: not-allowed; }
+  .check.locked input { cursor: not-allowed; }
+  .split-row { display: grid; gap: 0.35rem; }
   .check input {
     width: 1.2rem;
     height: 1.2rem;
@@ -262,9 +265,12 @@
       </div>
     </fieldset>
 
-    <label class="check" for="split">
-      <input id="split" type="checkbox"> Split
-    </label>
+    <div class="split-row">
+      <label class="check" for="split" id="splitLabel">
+        <input id="split" type="checkbox" aria-describedby="splitHint"> Split
+      </label>
+      <span class="hint" id="splitHint" hidden></span>
+    </div>
 
     <fieldset class="part" id="part2" hidden>
       <legend>Second part</legend>
@@ -633,20 +639,57 @@
   splitDurationEl.addEventListener("change", showSplit);
 
   // ---- Start up ---------------------------------------------------------
+  // ---- Split availability ----------------------------------------------
+  // A service can be split unless datasets.json marks it "split": false
+  const splitLabelEl = document.getElementById("splitLabel");
+  const splitHintEl = document.getElementById("splitHint");
+  let datasetList = [];
+
+  function setSplit(on) {
+    splitEl.checked = on;
+    parts[1].fieldset.hidden = !on;
+    formEl.classList.toggle("is-split", on);
+  }
+
+  function syncSplitAllowed() {
+    const first = datasetList.find(d => d.file === parts[0].dataset.value);
+    const serviceAllows = !first || first.split !== false;
+    const hasPartner = parts[1].dataset.options.length > 0;
+    const allowed = serviceAllows && hasPartner;
+
+    if (!allowed && splitEl.checked) setSplit(false);
+    splitEl.disabled = !allowed;
+    splitLabelEl.classList.toggle("locked", !allowed);
+    splitHintEl.hidden = allowed;
+    splitHintEl.textContent = !serviceAllows
+      ? `${first.name} visits can't be split.`
+      : "No services are available to split with.";
+  }
+
   async function init() {
     loadBonuses();
     try {
       const res = await fetch(MANIFEST, { cache: "no-cache" });
       if (!res.ok) throw new Error(`${MANIFEST} returned ${res.status}`);
       const datasets = await res.json();
-      parts.forEach((part, n) => {
-        part.dataset.innerHTML = "";
-        datasets.forEach(d => part.dataset.add(new Option(d.name, d.file)));
-        // Second part starts on the next service in the list, if there is one
-        if (n === 1 && datasets.length > 1) part.dataset.selectedIndex = 1;
-        part.dataset.disabled = false;
-      });
-      await Promise.all(parts.map(loadPart));
+      datasetList = datasets;
+
+      // First part: every service
+      parts[0].dataset.innerHTML = "";
+      datasets.forEach(d => parts[0].dataset.add(new Option(d.name, d.file)));
+      parts[0].dataset.disabled = false;
+
+      // Second part: only services that can be split, starting on one
+      // that differs from the first part where possible
+      const splittable = datasets.filter(d => d.split !== false);
+      parts[1].dataset.innerHTML = "";
+      splittable.forEach(d => parts[1].dataset.add(new Option(d.name, d.file)));
+      const other = splittable.findIndex(d => d.file !== parts[0].dataset.value);
+      if (other >= 0) parts[1].dataset.selectedIndex = other;
+      parts[1].dataset.disabled = splittable.length === 0;
+
+      syncSplitAllowed();
+      await Promise.all(parts.filter(p => p.dataset.options.length).map(loadPart));
     } catch (err) {
       parts.forEach(p => p.dataset.innerHTML = "<option>Unavailable</option>");
       showMessage(`Couldn't load the list of services (${err.message}). If you opened this file directly from your computer, run it from GitHub Pages or a local web server instead.`, true);
@@ -654,13 +697,15 @@
   }
 
   parts.forEach(part => {
-    part.dataset.addEventListener("change", () => loadPart(part));
+    part.dataset.addEventListener("change", () => {
+      if (part === parts[0]) syncSplitAllowed();
+      loadPart(part);
+    });
     part.rate.addEventListener("change", () => { syncBlock(part); render(); });
     part.hours.addEventListener("input", render);
   });
   splitEl.addEventListener("change", () => {
-    parts[1].fieldset.hidden = !splitEl.checked;
-    formEl.classList.toggle("is-split", splitEl.checked);
+    setSplit(splitEl.checked);
     render();
   });
   bonusEl.addEventListener("change", render);
