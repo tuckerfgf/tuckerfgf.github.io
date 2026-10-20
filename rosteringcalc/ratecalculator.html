@@ -130,6 +130,7 @@
     gap: 1.25rem;
     grid-template-columns: 1fr 1fr;
     min-width: 0;
+    align-items: start;
   }
   legend {
     display: none;
@@ -144,6 +145,8 @@
     padding-left: 1rem;
   }
   .field { display: grid; gap: 0.35rem; }
+  .hint { font-size: 0.85rem; color: var(--muted); }
+  input:disabled { opacity: 0.65; cursor: not-allowed; }
   .field.wide { grid-column: 1 / -1; }
   label { font-weight: 700; font-size: 0.95rem; }
   select, input[type="number"] {
@@ -254,7 +257,8 @@
       </div>
       <div class="field">
         <label for="hours1">Hours</label>
-        <input id="hours1" type="number" inputmode="decimal" min="0" step="0.25" value="1">
+        <input id="hours1" type="number" inputmode="decimal" min="0" step="0.25" value="1" aria-describedby="hint1">
+        <span class="hint" id="hint1" hidden>Block rates are a fixed amount, so hours are set to 1.</span>
       </div>
     </fieldset>
 
@@ -274,7 +278,8 @@
       </div>
       <div class="field">
         <label for="hours2">Hours</label>
-        <input id="hours2" type="number" inputmode="decimal" min="0" step="0.25" value="1">
+        <input id="hours2" type="number" inputmode="decimal" min="0" step="0.25" value="1" aria-describedby="hint2">
+        <span class="hint" id="hint2" hidden>Block rates are a fixed amount, so hours are set to 1.</span>
       </div>
     </fieldset>
 
@@ -306,6 +311,9 @@
     dataset: document.getElementById(`dataset${n}`),
     rate: document.getElementById(`rate${n}`),
     hours: document.getElementById(`hours${n}`),
+    hint: document.getElementById(`hint${n}`),
+    locked: false,
+    savedHours: "1",
     data: null,
     error: null,
   }));
@@ -343,6 +351,25 @@
 
   const keyOf = header => header.trim().toLowerCase();
   const hoursText = h => (h === 1 ? "1 hour" : `${h} hours`);
+  const isBlockRate = name => /block/i.test(name || "");
+
+  // Block rates are a preset amount: lock hours to 1, and restore the
+  // previous hours when switching back to an hourly rate
+  function syncBlock(part) {
+    const block = isBlockRate(part.rate.options[part.rate.selectedIndex]?.text);
+    if (block && !part.locked) {
+      part.savedHours = part.hours.value;
+      part.hours.value = "1";
+      part.hours.disabled = true;
+      part.hint.hidden = false;
+      part.locked = true;
+    } else if (!block && part.locked) {
+      part.hours.value = part.savedHours;
+      part.hours.disabled = false;
+      part.hint.hidden = true;
+      part.locked = false;
+    }
+  }
 
   // ---- Data loading -----------------------------------------------------
   async function fetchCSV(file) {
@@ -367,6 +394,7 @@
       const match = [...part.rate.options].find(o => o.text === previous);
       if (match) part.rate.value = match.value;
       part.rate.disabled = false;
+      syncBlock(part);
     } catch (err) {
       part.data = null;
       part.error = err.message;
@@ -395,8 +423,9 @@
     if (part.error) return `Couldn't load ${part.dataset.options[part.dataset.selectedIndex]?.text} rates (${part.error}). Check the file path in ${MANIFEST}.`;
     if (!part.data) return null;
     const row = part.data.rows[part.rate.value];
-    const hours = parseFloat(part.hours.value);
     if (!row) return null;
+    const block = isBlockRate(row[0]);
+    const hours = block ? 1 : parseFloat(part.hours.value);
     if (!Number.isFinite(hours) || hours < 0) return "Enter the number of hours as 0 or more, for example 2.5.";
     const values = new Map();
     part.data.headers.slice(1).forEach((header, i) => {
@@ -407,6 +436,7 @@
       service: part.dataset.options[part.dataset.selectedIndex].text,
       rate: row[0],
       hours,
+      block,
       values,
     };
   }
@@ -445,7 +475,9 @@
     summary.className = "summary";
     results.forEach(r => {
       const line = document.createElement("span");
-      line.append(cell("strong", r.service), " at ", cell("strong", r.rate), " for ", cell("strong", hoursText(r.hours)));
+      line.append(cell("strong", r.service), " at ", cell("strong", r.rate));
+      if (r.block) line.append(" (fixed block)");
+      else line.append(" for ", cell("strong", hoursText(r.hours)));
       summary.appendChild(line);
     });
     if (bonusAmount) {
@@ -467,7 +499,7 @@
       headRow.appendChild(cell("th", "Second part", "num"));
       headRow.appendChild(cell("th", "Visit total", "num"));
     } else {
-      headRow.appendChild(cell("th", "Per hour", "num"));
+      headRow.appendChild(cell("th", results[0].block ? "Per block" : "Per hour", "num"));
       headRow.appendChild(cell("th", "Total", "num"));
     }
     headRow.querySelectorAll("th").forEach(th => th.scope = "col");
@@ -615,7 +647,7 @@
 
   parts.forEach(part => {
     part.dataset.addEventListener("change", () => loadPart(part));
-    part.rate.addEventListener("change", render);
+    part.rate.addEventListener("change", () => { syncBlock(part); render(); });
     part.hours.addEventListener("input", render);
   });
   splitEl.addEventListener("change", () => {
