@@ -548,23 +548,31 @@
   const splitResultEl = document.getElementById("splitResult");
   let splits = null; // { headers, rows }
 
-  // Turns any web addresses in the text into links
+  // Turns links in the text into clickable links. Two forms are supported:
+  //   [Your label](https://…)  shows your label as the link text
+  //   https://…                shows "this example.com page"
   function withLinks(text) {
     const frag = document.createDocumentFragment();
-    text.split(/(https?:\/\/\S+)/g).forEach(piece => {
-      if (/^https?:\/\//.test(piece)) {
-        const a = document.createElement("a");
-        a.href = piece;
-        a.target = "_blank";
-        a.rel = "noopener";
-        let host = piece;
-        try { host = new URL(piece).hostname.replace(/^www\./, ""); } catch {}
+    const pattern = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)|(https?:\/\/\S+)/g;
+    let last = 0, m;
+    while ((m = pattern.exec(text))) {
+      if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+      const href = m[2] || m[3];
+      const a = document.createElement("a");
+      a.href = href;
+      a.target = "_blank";
+      a.rel = "noopener";
+      if (m[1]) {
+        a.textContent = m[1];
+      } else {
+        let host = href;
+        try { host = new URL(href).hostname.replace(/^www\./, ""); } catch {}
         a.textContent = `this ${host} page`;
-        frag.appendChild(a);
-      } else if (piece) {
-        frag.appendChild(document.createTextNode(piece));
       }
-    });
+      frag.appendChild(a);
+      last = pattern.lastIndex;
+    }
+    if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
     return frag;
   }
 
