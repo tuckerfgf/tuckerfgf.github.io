@@ -205,6 +205,26 @@
   }
   th.num { white-space: normal; }
   .note { display: block; font-size: 0.85rem; font-weight: 400; color: var(--muted); white-space: normal; }
+  .tools {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .tools h2 { font-size: 1.15rem; margin: 0 0 1rem; }
+  .pct {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 0.75rem 1rem;
+  }
+  .pct .field { width: 9rem; }
+  .pct output {
+    font-weight: 700;
+    font-size: 1.25rem;
+    color: var(--accent);
+    padding-bottom: 0.55rem;
+    font-variant-numeric: tabular-nums;
+  }
   .message {
     padding: 1rem;
     border-radius: 6px;
@@ -301,6 +321,21 @@
   </form>
 
   <section class="results" id="results" aria-live="polite"></section>
+
+  <section class="tools">
+    <h2>WFC Tools</h2>
+    <div class="pct">
+      <div class="field">
+        <label for="pctPrice">Service price ($)</label>
+        <input id="pctPrice" type="number" inputmode="decimal" min="0" step="0.01" placeholder="100">
+      </div>
+      <div class="field">
+        <label for="pctValue">Percentage (%)</label>
+        <input id="pctValue" type="number" inputmode="decimal" min="0" step="any" placeholder="10">
+      </div>
+      <output id="pctOut" for="pctPrice pctValue" aria-live="polite">= $0.00</output>
+    </div>
+  </section>
 </main>
 
 <script>
@@ -740,6 +775,20 @@
   });
   bonusEl.addEventListener("change", render);
   init();
+
+  // ---- WFC Tools: percentage of a price ----------------------------------
+  const pctPriceEl = document.getElementById("pctPrice");
+  const pctValueEl = document.getElementById("pctValue");
+  const pctOutEl = document.getElementById("pctOut");
+  function updatePercentage() {
+    const price = parseFloat(pctPriceEl.value);
+    const pct = parseFloat(pctValueEl.value);
+    pctOutEl.textContent = Number.isFinite(price) && Number.isFinite(pct)
+      ? `= ${CURRENCY.format(price * pct / 100)}`
+      : "= $0.00";
+  }
+  pctPriceEl.addEventListener("input", updatePercentage);
+  pctValueEl.addEventListener("input", updatePercentage);
 </script>
 </body>
 </html>
