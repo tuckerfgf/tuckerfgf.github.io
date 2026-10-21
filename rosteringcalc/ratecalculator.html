@@ -248,6 +248,11 @@
   </section>
 
   <form id="calc" onsubmit="return false">
+    <div class="field" id="fundingField">
+      <label for="funding">Funding</label>
+      <select id="funding" disabled><option>Loading…</option></select>
+    </div>
+
     <fieldset class="part" id="part1">
       <legend>First part</legend>
       <div class="field wide">
@@ -639,11 +644,18 @@
   splitDurationEl.addEventListener("change", showSplit);
 
   // ---- Start up ---------------------------------------------------------
-  // ---- Split availability ----------------------------------------------
-  // A service can be split unless datasets.json marks it "split": false
+  // ---- Funding and split availability ----------------------------------
+  // In datasets.json, each service can have:
+  //   "funding": "Support At Home"  - which Funding option it belongs to
+  //   "split": false                - stops the visit being split
+  // A service with no funding appears under every Funding option.
+  const fundingEl = document.getElementById("funding");
+  const fundingFieldEl = document.getElementById("fundingField");
   const splitLabelEl = document.getElementById("splitLabel");
   const splitHintEl = document.getElementById("splitHint");
   let datasetList = [];
+
+  const inFunding = d => !fundingEl.value || !d.funding || d.funding === fundingEl.value;
 
   function setSplit(on) {
     splitEl.checked = on;
@@ -663,7 +675,33 @@
     splitHintEl.hidden = allowed;
     splitHintEl.textContent = !serviceAllows
       ? `${first.name} visits can't be split.`
-      : "No services are available to split with.";
+      : "No other services under this funding can be split with it.";
+  }
+
+  // Fills a Service dropdown, keeping the current choice if it's still allowed
+  function fillServices(select, list, preferDifferentFrom) {
+    const previous = select.value;
+    select.innerHTML = "";
+    list.forEach(d => select.add(new Option(d.name, d.file)));
+    if (list.some(d => d.file === previous) && previous !== preferDifferentFrom) {
+      select.value = previous;
+    } else if (preferDifferentFrom) {
+      const other = list.findIndex(d => d.file !== preferDifferentFrom);
+      if (other >= 0) select.selectedIndex = other;
+    }
+    select.disabled = list.length === 0;
+    return select.value !== previous;
+  }
+
+  function applyFunding() {
+    const available = datasetList.filter(inFunding);
+    const firstChanged = fillServices(parts[0].dataset, available);
+    const splittable = available.filter(d => d.split !== false);
+    const secondChanged = fillServices(parts[1].dataset, splittable, parts[0].dataset.value);
+    syncSplitAllowed();
+    if (firstChanged || !parts[0].data) loadPart(parts[0]);
+    if (parts[1].dataset.options.length && (secondChanged || !parts[1].data)) loadPart(parts[1]);
+    render();
   }
 
   async function init() {
@@ -671,25 +709,16 @@
     try {
       const res = await fetch(MANIFEST, { cache: "no-cache" });
       if (!res.ok) throw new Error(`${MANIFEST} returned ${res.status}`);
-      const datasets = await res.json();
-      datasetList = datasets;
+      datasetList = await res.json();
 
-      // First part: every service
-      parts[0].dataset.innerHTML = "";
-      datasets.forEach(d => parts[0].dataset.add(new Option(d.name, d.file)));
-      parts[0].dataset.disabled = false;
+      // Funding options come from the services, in the order they first appear
+      const fundings = [...new Set(datasetList.map(d => d.funding).filter(Boolean))];
+      fundingEl.innerHTML = "";
+      fundings.forEach(f => fundingEl.add(new Option(f, f)));
+      fundingEl.disabled = false;
+      fundingFieldEl.hidden = fundings.length === 0;
 
-      // Second part: only services that can be split, starting on one
-      // that differs from the first part where possible
-      const splittable = datasets.filter(d => d.split !== false);
-      parts[1].dataset.innerHTML = "";
-      splittable.forEach(d => parts[1].dataset.add(new Option(d.name, d.file)));
-      const other = splittable.findIndex(d => d.file !== parts[0].dataset.value);
-      if (other >= 0) parts[1].dataset.selectedIndex = other;
-      parts[1].dataset.disabled = splittable.length === 0;
-
-      syncSplitAllowed();
-      await Promise.all(parts.filter(p => p.dataset.options.length).map(loadPart));
+      applyFunding();
     } catch (err) {
       parts.forEach(p => p.dataset.innerHTML = "<option>Unavailable</option>");
       showMessage(`Couldn't load the list of services (${err.message}). If you opened this file directly from your computer, run it from GitHub Pages or a local web server instead.`, true);
@@ -704,6 +733,7 @@
     part.rate.addEventListener("change", () => { syncBlock(part); render(); });
     part.hours.addEventListener("input", render);
   });
+  fundingEl.addEventListener("change", applyFunding);
   splitEl.addEventListener("change", () => {
     setSplit(splitEl.checked);
     render();
