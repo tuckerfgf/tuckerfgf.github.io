@@ -1,8 +1,8 @@
 [
-  { "name": "Clinical", "file": "data/Clinical.csv" },
-  { "name": "Driving", "file": "data/Driving.csv" },
-  { "name": "Everyday Living", "file": "data/everyday-living.csv" },
-  { "name": "Independence", "file": "data/Independence.csv" },
-  { "name": "Private", "file": "data/Private.csv", "split": false },
-  { "name": "NDIS", "file": "data/NDIS.csv", "split": false }
+  { "name": "Clinical", "file": "data/clinical.csv", "funding": "Support At Home" },
+  { "name": "Everyday Living", "file": "data/everyday-living.csv", "funding": "Support At Home" },
+  { "name": "Independence", "file": "data/independence.csv", "funding": "Support At Home" },
+  { "name": "Driving & Community Access", "file": "data/driving.csv", "funding": "Support At Home" },
+  { "name": "NDIS", "file": "data/ndis.csv", "funding": "NDIS", "split": false },
+  { "name": "Private", "file": "data/private.csv", "funding": "Private", "split": false }
 ]
