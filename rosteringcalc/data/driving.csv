@@ -1,28 +1,28 @@
-Rate,FGF Pricing,IC,Take Home,,,
-DCA - Local Trip | Standard,$125.09,$72.70,$58.16,,,
-DCA - Local Trip | Saturday,$162.29,$104.70,$83.76,,,
-DCA - Local Trip | Sunday,$212.14,$139.70,$111.76,,,
-DCA - Local Trip | Public Holiday,$262.22,$170.70,$136.56,,,
-DCA - Regional Trip | Standard,$138.85,$80.70,$64.56,,,
-DCA - Regional Trip | Saturday,$174.69,$112.70,$90.16,,,
-DCA - Regional Trip | Sunday,$224.29,$147.70,$118.16,,,
-DCA - Regional Trip | Public Holiday,$274.51,$178.70,$142.96,,,
-DCA - Extended Trip | Standard,$164.32,$95.50,$76.40,,,
-DCA - Extended Trip | Saturday,$197.63,$127.50,$102.00,,,
-DCA - Extended Trip | Sunday,$246.76,$162.50,$130.00,,,
-DCA - Extended Trip | Public Holiday,$297.24,$193.50,$154.80,,,
-Shopping - Local Trip | Standard,$112.59,$69.70,$55.76,,,
-Shopping - Local Trip | Saturday,$143.67,$101.20,$80.96,,,
-Shopping - Local Trip | Sunday,$190.73,$133.20,$106.56,,,
-Shopping - Local Trip | Public Holiday,$236.71,$165.70,$132.56,,,
-Shopping - Regional Trip | Standard,$125.52,$77.70,$62.16,,,
-Shopping - Regional Trip | Saturday,$155.03,$109.20,$87.36,,,
-Shopping - Regional Trip | Sunday,$202.19,$141.20,$112.96,,,
-Shopping - Regional Trip | Public Holiday,$248.14,$173.70,$138.96,,,
-Shopping - Extended Trip | Standard,$149.42,$92.50,$74.00,,,
-Shopping - Extended Trip | Saturday,$176.04,$124.00,$99.20,,,
-Shopping - Extended Trip | Sunday,$223.38,$156.00,$124.80,,,
-Shopping - Extended Trip | Public Holiday,$269.29,$188.50,$150.80,,,
-Direct Transport - Local Trip | Standard,$64.69,$37.60,$30.08,,,
-Direct Transport - Regional Trip | Standard,$143.58,$83.45,$66.76,,,
-Direct Transport - Extended Trip | Standard,$236.49,$137.45,$109.96,,,
+Rate,FGF Pricing,IC,Take Home
+DCA - Local Trip | Standard,$125.09,$72.70,$58.16
+DCA - Local Trip | Saturday,$162.29,$104.70,$83.76
+DCA - Local Trip | Sunday,$212.14,$139.70,$111.76
+DCA - Local Trip | Public Holiday,$262.22,$170.70,$136.56
+DCA - Regional Trip | Standard,$138.85,$80.70,$64.56
+DCA - Regional Trip | Saturday,$174.69,$112.70,$90.16
+DCA - Regional Trip | Sunday,$224.29,$147.70,$118.16
+DCA - Regional Trip | Public Holiday,$274.51,$178.70,$142.96
+DCA - Extended Trip | Standard,$164.32,$95.50,$76.40
+DCA - Extended Trip | Saturday,$197.63,$127.50,$102.00
+DCA - Extended Trip | Sunday,$246.76,$162.50,$130.00
+DCA - Extended Trip | Public Holiday,$297.24,$193.50,$154.80
+Shopping - Local Trip | Standard,$112.59,$69.70,$55.76
+Shopping - Local Trip | Saturday,$143.67,$101.20,$80.96
+Shopping - Local Trip | Sunday,$190.73,$133.20,$106.56
+Shopping - Local Trip | Public Holiday,$236.71,$165.70,$132.56
+Shopping - Regional Trip | Standard,$125.52,$77.70,$62.16
+Shopping - Regional Trip | Saturday,$155.03,$109.20,$87.36
+Shopping - Regional Trip | Sunday,$202.19,$141.20,$112.96
+Shopping - Regional Trip | Public Holiday,$248.14,$173.70,$138.96
+Shopping - Extended Trip | Standard,$149.42,$92.50,$74.00
+Shopping - Extended Trip | Saturday,$176.04,$124.00,$99.20
+Shopping - Extended Trip | Sunday,$223.38,$156.00,$124.80
+Shopping - Extended Trip | Public Holiday,$269.29,$188.50,$150.80
+Direct Transport - Local Trip | Standard,$64.69,$37.60,$30.08
+Direct Transport - Regional Trip | Standard,$143.58,$83.45,$66.76
+Direct Transport - Extended Trip | Standard,$236.49,$137.45,$109.96
